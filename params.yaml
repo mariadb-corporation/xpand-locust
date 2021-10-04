@@ -1,0 +1,12 @@
+weights:
+  count_by_product: 1
+  insert_order: 10
+db_config:
+  #host: xpand1,xpand2,xpand3
+  host: yang02e
+  port: 3306
+  user: xpand_locust
+  password: "mariadb"
+  database: "demo_sales"
+  autocommit: True
+  ssl: 0

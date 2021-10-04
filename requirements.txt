@@ -1,0 +1,8 @@
+gevent==21.8.0
+geventhttpclient==1.5.1
+greenlet==1.1.1
+locust==2.2.3
+numpy==1.20.3
+pandas==1.2.4
+PyMySQL==1.0.2
+PyYAML==5.4.1
