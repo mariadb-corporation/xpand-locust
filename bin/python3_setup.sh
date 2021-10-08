@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Setup Pyhton 3 using pyenv
+sudo yum -y install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite \
+    sqlite-devel openssl-devel xz xz-devel libffi-devel
+
+pyenv update
+pyenv install -f 3.9.5
+
+# How to switch versions https://realpython.com/intro-to-pyenv/
+pyenv global 3.9.5
+pip install --upgrade pip
