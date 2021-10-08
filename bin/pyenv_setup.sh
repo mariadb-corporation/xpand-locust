@@ -17,8 +17,8 @@ rm -rf ${PYENV_ROOT}
 # From https://github.com/pyenv/pyenv-installer
 curl https://pyenv.run | bash
 
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >>~/.bash_profile
-echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >>~/.bash_profile
-echo 'eval "$(pyenv init --path)"' >>~/.bash_profile
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >>~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >>~/.bashrc
+echo 'eval "$(pyenv init --path)"' >>~/.bashrc
 
 echo "Done with pyenv"
