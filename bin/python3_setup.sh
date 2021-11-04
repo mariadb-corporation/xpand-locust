@@ -8,6 +8,7 @@ pyenv update
 pyenv install -f 3.9.5
 
 # How to switch versions https://realpython.com/intro-to-pyenv/
+echo "Installing Python-3.9.5..."
 pyenv global 3.9.5
 pip install --upgrade pip
 
