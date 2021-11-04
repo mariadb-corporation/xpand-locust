@@ -14,7 +14,9 @@ class MySqlClient:
         self.connect_params = kwargs.copy()
         hosts = kwargs.get("host").split(",")
         rnd = random.randint(0, len(hosts) - 1)
-        self.connect_params["host"] = hosts[rnd]
+        self.connect_params["host"] = hosts[
+            rnd
+        ]  # ToDo: random.choice or https://pypi.org/project/roundrobin/
         self.conn = pymysql.connect(**self.connect_params)
         self.cur = self.conn.cursor()
 
