@@ -3,6 +3,8 @@ import sys
 import time
 
 import gevent
+from gevent.lock import Semaphore
+
 import locust.stats
 from locust import TaskSet, User, events
 from locust.runners import (
@@ -16,8 +18,13 @@ from locust.runners import (
 from .locust_utils import load_yaml_config
 from .mysql_client import MySqlClient
 
+all_users_spawned = Semaphore()
+all_users_spawned.acquire()
+
+
 logger = logging.getLogger(__name__)
 
+# ToDO socket.setdefaulttimeout(150)
 
 # TODO
 # https://docs.locust.io/en/stable/configuration.html
@@ -69,6 +76,11 @@ def _(parser):
         help="produce latency histogram after test end",
     )
 
+@events.init.add_listener
+def _(environment, **kw):
+    @environment.events.spawning_complete.add_listener
+    def on_spawning_complete(**kw):
+        all_users_spawned.release()
 
 @events.init.add_listener
 def _(environment, **kw):
@@ -132,6 +144,13 @@ class CustomTasks(TaskSet):
                 new_tasks.append(func)
         # Should I shuffle as well ?
         self.tasks = new_tasks
+        
+        all_users_spawned.wait()
+        self.wait()
+        # From https://github.com/locustio/locust/blob/c3d1a49cda02660de14ddc25130673db9fae440a/locust/web.py
+        self.user.environment.events.reset_stats.fire()
+        self.user.environment.runner.stats.reset_all()
+        self.user.environment.runner.exceptions = {}
 
 
 # TODO - wait for all users
