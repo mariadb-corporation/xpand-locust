@@ -7,6 +7,25 @@ It includes (but not limited to):
 - Load balancer (during connection time) for Xpand
 - Ability to redefine functions weights from configuration file  
 
+## Standalone install
+
+If you want to run locust standalone or master - workers inside the same host please follow next steps:
+
+```bash
+sudo yum -y remove git-* && sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && sudo yum -y install git
+mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
+$HOME/tools/xpand-locust/bin/pyenv_setup.sh
+# You have to re-login before continue
+$HOME/tools/xpand-locust/bin/python3_setup.sh
+pip install -r $HOME/tools/xpand-locust/requirements.txt
+echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
+```
+Before running your locustfile please setup PYTHONPATH as follow:
+
+```bash
+export PYTHONPATH=$XPAND_LOCUST_HOME
+```
+
 ## Quick start
 
 Setup you sample database using sales.sql and update params.yaml accordantly.
