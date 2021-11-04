@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# Setup Pyhton 3 using pyenv
-sudo yum install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite \
-    sqlite-devel openssl-devel xz xz-devel libffi-devel
-
-sudo yum -y remove git-*
-sudo yum -y remove git-*
-sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm
-
-sudo yum -y install git
+# Setup pyenv
 
 # clean any previous installations
 export PYENV_ROOT="${HOME}/.pyenv"

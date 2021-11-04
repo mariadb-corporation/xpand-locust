@@ -12,7 +12,13 @@ It includes (but not limited to):
 If you want to run locust standalone or master - workers inside the same host please follow next steps:
 
 ```bash
+# First we need to install git 
+# Centos 
 sudo yum -y remove git-* && sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && sudo yum -y install git
+# Amazon Linux 
+sudo amazon-linux-extras install epel
+sudo yum install git
+# Check this page for other distributions: https://git-scm.com/download/linux
 mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
 $HOME/tools/xpand-locust/bin/pyenv_setup.sh
 # You have to re-login before continue

@@ -1,0 +1,33 @@
+pssh_options: # https://github.com/ParallelSSH/parallel-ssh/blob/master/pssh/clients/ssh/parallel.py
+  user: root
+  password: ""
+  pkey:
+  timeout: 15
+  num_retries: 5
+  retry_delay: 10
+master: localhost # Other than localhost hasn't been implemented yet
+drivers:
+  - yin01a
+  - yin01b
+configure:
+  - sudo yum -y remove git-* && sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && sudo yum -y install git
+  - mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
+  - $HOME/tools/xpand-locust/bin/pyenv_setup.sh
+  - $HOME/tools/xpand-locust/bin/python3_setup.sh
+  - pip install -r $HOME/tools/xpand-locust/requirements.txt
+  - echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
+
+# Example for master and worker https://github.com/locustio/locust/blob/master/scripts/run-disributed-headless.sh
+# Parameters --users, --spawn-rate, --run-time coming, --expect-workers come from command line
+
+locust_master_options: # Check https://docs.locust.io/en/stable/configuration.html
+  master-bind-host: "*"
+  master-bind-port: 5557
+  # Waiting for workers to be ready works only with autostart (and webUI)
+  # https://github.com/locustio/locust/commit/3ab398e499749aedaf7506c8a2f11cc4cdcc19ec
+  extra_options: --cvs mysql --csv-full-history --reset-stats --autostart --autoquit 10 # do not use --loglevel
+locust_worker_options:
+  master-port: 5557
+  master-host: #  leave it empty to be set from the command line/code
+  extra_options: --logfile /tmp/worker.out # do not use --loglevel
+
