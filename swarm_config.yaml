@@ -17,17 +17,14 @@ configure:
   - pip install -r $HOME/tools/xpand-locust/requirements.txt
   - echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
 
-# Example for master and worker https://github.com/locustio/locust/blob/master/scripts/run-disributed-headless.sh
-# Parameters --users, --spawn-rate, --run-time coming, --expect-workers come from command line
-
 locust_master_options: # Check https://docs.locust.io/en/stable/configuration.html
   master-bind-host: "*"
   master-bind-port: 5557
   # Waiting for workers to be ready works only with autostart (and webUI)
   # https://github.com/locustio/locust/commit/3ab398e499749aedaf7506c8a2f11cc4cdcc19ec
-  extra_options: --cvs mysql --csv-full-history --reset-stats --autostart --autoquit 10 # do not use --loglevel
+  # ToDO: check for --expect-workers-max-wait 60
+  # Todo --autostart --autoquit 10 causes  web_ui.stop() AttributeError: 'NoneType' object has no attribute 'stop'
+  extra_options: --headless --csv-full-history --print-stats --reset-stats # do not use --loglevel
 locust_worker_options:
-  master-port: 5557
-  master-host: #  leave it empty to be set from the command line/code
   extra_options: --logfile /tmp/worker.out # do not use --loglevel
 
