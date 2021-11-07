@@ -79,7 +79,7 @@ class Swarm:
         try:
             proc = RunSubprocess(cmd=cmd).run(wait=False)
             while True:
-                # TODO implement timeout - locust could wait forever
+                # TODO implement timeout - locust could wait forever; Look for the line  "Currently 2 clients ready to swarm"
                 line = proc.stdout.readline()
                 if proc.poll() is not None:
                     break
@@ -133,7 +133,7 @@ class Swarm:
         """
         https://docs.locust.io/en/stable/configuration.html
         """
-        self.logger.debug("About to start master")
+        self.logger.info("About to start master")
 
         # MASTER_CMD="locust -f ${LOCUSTFILE} -u ${NUM_USERS} -r 10 --run-time ${RUNTIME}m --master ${STEP_LOAD} --master-bind-port=5557 --headless --expect-workers ${NUM_WORKERS} --csv=${RUN_DIR}/${STAT_PREFIX} --csv-full-history --reset-stats"
         master_options = self.config.get("locust_master_options")
@@ -169,12 +169,30 @@ class Swarm:
     def main_workers(self):
         """
         https://docs.locust.io/en/stable/running-locust-distributed.html#running-locust-distributed
-
         """
-        # WORKER_CMD="locust -f ${LOCUSTFILE} --worker --master-host=${MASTERHOST} --master-port=5557"
-        # ToDo for every self.config.get("drivers")
+        if self.args.drivers_list is None:
+            self.run_workers_remotely(self.config.get("drivers"))
+        elif self.args.drivers_list == "127.0.0.1":
+            self.run_workers_locally()
+        else:
+            self.run_workers_remotely(self.drivers_list.split(","))
+
+    def run_workers_remotely(self, drivers_list: str):
+        """Run drivers remotely
+
+        WORKER_CMD="locust -f ${LOCUSTFILE} --worker --master-host=${MASTERHOST} --master-port=5557"
+
+        Args:
+            drivers_list (str): [description]
+        """
+        self.logger.Info("About to start workers on the remote drivers")
+
+    def run_workers_locally(self):
+        """Run workers on the current host"""
+
+        self.logger.info("About to start local workers")
         master_options = self.config.get("locust_master_options")
-        
+
         cpu_count = multiprocessing.cpu_count()
         if self.args.num_workers > cpu_count:
             self.logger.warning(f"Reducing number of workers to {cpu_count}")
@@ -192,7 +210,7 @@ class Swarm:
                 "--master-port",
                 str(master_options.get("master-bind-port")),
                 "--master-host",
-                "127.0.0.1",
+                self.args.master_host,
             ]
         )
         self.logger.info(f"Starting all {num_workers} workers")
@@ -201,25 +219,5 @@ class Swarm:
             cmd = worker_cmd + f" </dev/null >worker{i}.out 2>&1"
             self.logger.debug(f"Running {cmd}")
             running_procs.append(RunSubprocess(cmd=cmd).run_as_shell(wait=False))
-
-        """
-        while running_procs:
-            for process in running_procs:
-                retcode = process.poll()
-                if retcode is not None:  # Process finished.
-                    running_procs.remove(process)
-                    if retcode != 0:
-                        self.logger.error(
-                            f"Bad return code {retcode} from command: {process.args}"
-                        )
-                        raise SwarmException()
-                    else:
-                        while True:
-                            line = process.stdout.readline()
-                            if line == b"":
-                                break
-                            else:
-                                sys.stdout.write(
-                                    f"{process.pid}: {line.decode('utf-8')}"
-                                )
-        """
+            # TODO check that they has started at least
+            # Fatal error has happened (2003, "Can't connect to MySQL server

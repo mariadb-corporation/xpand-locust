@@ -84,3 +84,29 @@ Before run this example make sure you set `autocommit: False` in params.yaml):
             ),
         self.trx_commit()
 ```
+
+## Running Xpand-Locust on the single machine
+
+### Running as standalone
+
+Standalone means you will be running both master and workers as a single process. You will be able to utilize only one processor core.
+
+```bash
+./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_standalone --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml
+```
+
+### Running master and workers on the same machine as separate processes
+
+This time you will be able to utilize multiple cores on the same machine
+
+First you should start workers:
+
+```bash
+./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_workers --num-workers 2 --drivers 127.0.0.1 --master-host=127.0.0.1
+```
+
+Secondly, start master:
+
+```bash
+./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_master --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml --expected-workers 2
+```

@@ -10,8 +10,8 @@
 # ./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_standalone --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml
 
 # Workers and master on the same host
+# ./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_workers --num-workers 2 --drivers 127.0.0.1 --master-host=127.0.0.1
 # ./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_master --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml --expected-workers 2
-# ./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_workers --num-workers 2
 
 import argparse
 import logging
@@ -75,6 +75,23 @@ class Main(Swarm):
             dest="num_workers",
             type=int,
             help="number of workers processes per load generator. Default: number of cores",
+            required=True,
+        )
+
+        run_workers_subparser.add_argument(
+            "--master-host",
+            action="store",
+            dest="master_host",
+            help="Master host IP. If it is 127.0.0.1 all workers will start locally",
+            default="127.0.0.1",
+            required=True,
+        )
+
+        run_workers_subparser.add_argument(
+            "--drivers",
+            action="store",
+            dest="drivers_list",
+            help="List fo drivers. Use 127.0.0.1 for local worker. If missing will read from yaml file",
         )
 
         run_workers_subparser.set_defaults(func="main_workers")
