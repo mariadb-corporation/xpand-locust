@@ -13,23 +13,23 @@ If you want to run locust standalone or master - workers inside the same host pl
 
 ```bash
 # First we need to install git 
-# Centos 
-sudo yum -y remove git-* && sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm && sudo yum -y install git
-# Amazon Linux 
-sudo amazon-linux-extras install epel
-sudo yum install git
-# Check this page for other distributions: https://git-scm.com/download/linux
+curl -s -LJO  https://raw.githubusercontent.com/mariadb-corporation/xpand-locust/main/bin/git_setup.sh | bash -s 
+
+# Checkout xpand-locust 
 mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
 $HOME/tools/xpand-locust/bin/pyenv_setup.sh
 # You have to re-login before continue
+# Install python
 $HOME/tools/xpand-locust/bin/python3_setup.sh
 pip install -r $HOME/tools/xpand-locust/requirements.txt
 echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
 ```
-Before running your locustfile please setup PYTHONPATH as follow:
+
+Before running your locustfile please setup PATH and PYTHONPATH as follow:
 
 ```bash
 export PYTHONPATH=$XPAND_LOCUST_HOME
+export PATH=$XPAND_LOCUST_HOME/bin:$PATH
 ```
 
 ## Quick start
@@ -92,7 +92,7 @@ Before run this example make sure you set `autocommit: False` in params.yaml):
 Standalone means you will be running both master and workers as a single process. You will be able to utilize only one processor core.
 
 ```bash
-./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_standalone --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml
+swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_standalone --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml
 ```
 
 ### Running master and workers on the same machine as separate processes
@@ -102,11 +102,11 @@ This time you will be able to utilize multiple cores on the same machine
 First you should start workers:
 
 ```bash
-./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_workers --num-workers 2 --drivers 127.0.0.1 --master-host=127.0.0.1
+swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_workers --num-workers 2 --drivers 127.0.0.1 --master-host=127.0.0.1
 ```
 
 Secondly, start master:
 
 ```bash
-./bin/swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_master --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml --expected-workers 2
+swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_master --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml --expected-workers 2
 ```

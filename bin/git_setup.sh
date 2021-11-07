@@ -1,9 +1,24 @@
 #!/bin/bash
 
+# TODO
+# Check this page for other distributions: https://git-scm.com/download/linux
 
-sudo yum -y remove git-*
-sudo yum -y install https://packages.endpoint.com/rhel/7/os/x86_64/endpoint-repo-1.9-1.x86_64.rpm
+OS_NAME=$(grep ^NAME /etc/os-release | awk -F= '{ print $2 } ' | tr -d \")
+VERSION_ID=$(grep VERSION_ID /etc/os-release | awk -F= '{ print $2 }' | tr -d \")
 
-sudo yum -y install git
+if [[ ${OS_NAME} == "CentOS Linux" ]]; then
+    package_manager="sudo yum -y install"
+    epel="sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${VERSION_ID}.noarch.rpm"
+elif [[ ${OS_NAME} == "Amazon Linux" ]]; then
+    epel="sudo amazon-linux-extras install epel"
+    package_manager="sudo yum -y install"
+else
+    echo "Unsupported OS"
+    exit 1
+fi
+
+package="git"
+${epel_manager}
+${package_manager} ${package}
 
 echo "Done with git"
