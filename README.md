@@ -63,10 +63,12 @@ Name                                                                            
 Before run this example make sure you set `autocommit: False` in params.yaml):
 
 ```python
-@custom_timer  # Now I am going to measure time by myself 
-@task(1)
+    from xpand_locust import custom_timer
+
+    @task(1)
+    @custom_timer  # Now I am going to measure time by myself 
     def my_complex_transaction(self):
-        self.trx_begin()  # Transaction begin 
+        self.client.trx_begin()  # Transaction begin 
         # Insert order 
         _ = self.client._execute(
         "insert into orders (product_name, amount) values (%s, %s)",
@@ -74,7 +76,7 @@ Before run this example make sure you set `autocommit: False` in params.yaml):
                 next(self.products_iterator),
                 10,
             ),
-        row = self._query ('SELECT LAST_INSERT_ID();')
+        row = self.client._query ('SELECT LAST_INSERT_ID();')
         # Update last inserted order 
         _ = self.client._execute(
         "update orders set amount = %s where order_no=%s",
@@ -82,7 +84,16 @@ Before run this example make sure you set `autocommit: False` in params.yaml):
                 20,
                 row[0],
             ),
-        self.trx_commit()
+        self.client.trx_commit()
+```
+
+## SSL support
+
+You should be able to pass any of the following keys: 'ca', 'key', 'cert' as shown below.  
+
+```yaml
+ ssl:
+    ca: sky.pem
 ```
 
 ## Running Xpand-Locust on the single machine
