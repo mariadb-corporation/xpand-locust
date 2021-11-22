@@ -19,6 +19,12 @@ class Swarm:
     def __init__(self, swarm_config, log_level):
 
         self.log_level = log_level
+        # TODO https://stackoverflow.com/questions/13733552/logger-configuration-to-log-to-file-and-print-to-stdout
+        # handlers=[
+        # logging.FileHandler("debug.log"),  # I can add --output dir here
+        # logging.StreamHandler()
+        # ]
+
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
@@ -84,7 +90,7 @@ class Swarm:
                 if proc.poll() is not None:
                     break
                 if line:
-                    print(line.strip())
+                    print(line.rstrip())
             retcode = proc.poll()
             if retcode != 0:
                 self.logger.error(
@@ -185,6 +191,8 @@ class Swarm:
         Args:
             drivers_list (str): [description]
         """
+        # TODO https://parallel-ssh.readthedocs.io/en/latest/advanced.html#sftp-and-scp
+        # Copy local locustfile to all drivers
         self.logger.Info("About to start workers on the remote drivers")
 
     def run_workers_locally(self):
@@ -195,10 +203,9 @@ class Swarm:
 
         cpu_count = multiprocessing.cpu_count()
         if self.args.num_workers > cpu_count:
-            self.logger.warning(f"Reducing number of workers to {cpu_count}")
-            num_workers = cpu_count
-        else:
-            num_workers = self.args.num_workers
+            self.logger.warning(
+                f"Number of workers greater than number of cores: {cpu_count}"
+            )
 
         worker_cmd = " ".join(
             [
@@ -213,11 +220,17 @@ class Swarm:
                 self.args.master_host,
             ]
         )
-        self.logger.info(f"Starting all {num_workers} workers")
+        self.logger.info(f"Starting all {self.args.num_workers} workers")
+        # TODO This should be instance variable and master should check that there is no fatal errors in workers (see below) and they are still running
+        # This will required non blocking read from Popen - https://pypi.org/project/python-nonblock/
         running_procs = []
-        for i in range(num_workers):
+        for i in range(self.args.num_workers):
             cmd = worker_cmd + f" </dev/null >worker{i}.out 2>&1"
             self.logger.debug(f"Running {cmd}")
             running_procs.append(RunSubprocess(cmd=cmd).run_as_shell(wait=False))
             # TODO check that they has started at least
             # Fatal error has happened (2003, "Can't connect to MySQL server
+
+    # TODO clean up
+    def cleanup(self):
+        """Clean up workers before starting new one"""
