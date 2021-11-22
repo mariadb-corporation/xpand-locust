@@ -10,7 +10,7 @@ if [[ ${OS_NAME} == "CentOS Linux" ]]; then
     package_manager="sudo yum -y install"
     epel="sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${VERSION_ID}.noarch.rpm"
 elif [[ ${OS_NAME} == "Amazon Linux" ]]; then
-    epel="sudo amazon-linux-extras install epel"
+    epel="sudo amazon-linux-extras install -y epel"
     package_manager="sudo yum -y install"
 else
     echo "Unsupported OS"
