@@ -53,6 +53,8 @@ class Main(Swarm):
             required=True,
         )
 
+        # TODO add --output to store output somewhere not just print it out
+
         subparsers = parser.add_subparsers()
 
         configure_subparser = subparsers.add_parser(
@@ -60,6 +62,14 @@ class Main(Swarm):
             help="configure the drivers",
             description="Start locust master and distributed slaves with one command",
         )
+
+        configure_subparser.add_argument(
+            "--drivers",
+            action="store",
+            dest="drivers_list",
+            help="Use drivers. Use 127.0.0.1 for local worker. If missing will read from yaml file",
+        )
+
         configure_subparser.set_defaults(func="main_configure")
 
         # Workers
@@ -91,7 +101,7 @@ class Main(Swarm):
             "--drivers",
             action="store",
             dest="drivers_list",
-            help="List fo drivers. Use 127.0.0.1 for local worker. If missing will read from yaml file",
+            help="Use drivers. Use 127.0.0.1 for local workers. If missing will read the list from yaml file",
         )
 
         run_workers_subparser.set_defaults(func="main_workers")
