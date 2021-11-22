@@ -28,6 +28,7 @@ echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
 Before running your locustfile please setup PATH and PYTHONPATH as follow:
 
 ```bash
+export XPAND_LOCUST_HOME=$HOME/tools/xpand-locust
 export PYTHONPATH=$XPAND_LOCUST_HOME
 export PATH=$XPAND_LOCUST_HOME/bin:$PATH
 ```
@@ -120,4 +121,16 @@ Secondly, start master:
 
 ```bash
 swarm_runner.py --swarm-config swarm_config.yaml --log-level DEBUG -f examples/locustfile_simple run_master --run-time 100 --users 10 --spawn-rate 10 --csv mysql --params params.yaml --expected-workers 2
+```
+
+## Other features
+
+### Histograms
+
+It is possible to get histogram per task at the end of the workload. This is approximate a histogram as locust [rounds response time](https://github.com/locustio/locust/blob/master/locust/stats.py#L337) in order to sve amount of data sent between worker and master.
+
+In order to enable histograms you need to add a corresponding keyword to the extra master_options to the swarm_config.yaml:
+```yaml
+locust_master_options:
+    extra_options: --headless --csv-full-history --print-stats --reset-stats --histogram # 
 ```

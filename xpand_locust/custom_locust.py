@@ -3,9 +3,8 @@ import sys
 import time
 
 import gevent
-from gevent.lock import Semaphore
-
 import locust.stats
+from gevent.lock import Semaphore
 from locust import TaskSet, User, events
 from locust.runners import (
     STATE_CLEANUP,
@@ -15,7 +14,7 @@ from locust.runners import (
     WorkerRunner,
 )
 
-from .locust_utils import load_yaml_config
+from .locust_utils import histogram, load_yaml_config
 from .mysql_client import MySqlClient
 
 all_users_spawned = Semaphore()
@@ -23,6 +22,9 @@ all_users_spawned.acquire()
 
 
 logger = logging.getLogger(__name__)
+
+# TODO
+# 'total_content_length': 0  - I need to send number of rows returned by methods
 
 # ToDO socket.setdefaulttimeout(150)
 
@@ -69,18 +71,20 @@ custom_params = CustomParams()
 def _(parser):
     parser.add_argument("--params", include_in_web_ui=False, default="params.yaml")
     parser.add_argument(
-        "--histograms",
+        "--histogram",
         action="store_true",
         default=False,
         include_in_web_ui=False,
         help="produce latency histogram after test end",
     )
 
+
 @events.init.add_listener
 def _(environment, **kw):
     @environment.events.spawning_complete.add_listener
     def on_spawning_complete(**kw):
         all_users_spawned.release()
+
 
 @events.init.add_listener
 def _(environment, **kw):
@@ -110,19 +114,19 @@ def checker(environment):
             return
 
 
-# TODO Histogram
-# @events.test_stop.add_listener
-# def on_test_stop(environment, **kwargs):
-#    if not isinstance(environment.runner, MasterRunner):
-#        print("Cleaning up test data")
-#
-#        print(
-#            environment.stats.serialize_stats()
-#        )  # Produce response_times =  {280: 3, 220: 16, 240: 26, 270: 5, 250: 25, 210: 4, 230: 10, 290: 2, 260: 8, 320: 1, 400: 1, 340: 1}
-#        # res = [key  for key in response_times for i in  range(response_times[key])]
-#    else:
-#        print(environment.stats.serialize_stats())
-#        print("Stopped test from Master node")
+# Print histogram if requested
+@events.test_stop.add_listener
+def on_test_stop(environment, **kwargs):
+    if environment.parsed_options.histogram and isinstance(
+        environment.runner, MasterRunner
+    ):
+
+        stats = environment.stats.serialize_stats()
+        for i in range(len(stats)):
+            print(f'==========   Historgram for {stats[i].get("name")} ==============')
+            response_times = stats[i].get("response_times")
+            data = [key for key in response_times for i in range(response_times[key])]
+            histogram(data, 25)
 
 
 class CustomTasks(TaskSet):
@@ -144,7 +148,7 @@ class CustomTasks(TaskSet):
                 new_tasks.append(func)
         # Should I shuffle as well ?
         self.tasks = new_tasks
-        
+
         all_users_spawned.wait()
         self.wait()
         # From https://github.com/locustio/locust/blob/c3d1a49cda02660de14ddc25130673db9fae440a/locust/web.py

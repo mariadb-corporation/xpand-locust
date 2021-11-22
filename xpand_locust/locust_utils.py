@@ -38,3 +38,64 @@ def is_worker():
 
 def is_master():
     return "--master" in sys.argv
+
+
+def histogram(data, buckets: int = 25):
+    """
+    This code is from https://github.com/Kobold/text_histogram/blob/master/text_histogram.py
+    """
+
+    bucket_scale = 1
+    min_v = min(data)
+    max_v = max(data)
+    diff = max_v - min_v
+
+    boundaries = []
+    bucket_counts = []
+
+    if buckets <= 0:
+        raise ValueError("# of buckets must be > 0")
+    step = diff / buckets
+    bucket_counts = [0 for x in range(buckets)]
+    for x in range(buckets):
+        boundaries.append(min_v + (step * (x + 1)))
+
+    skipped = 0
+    samples = 0
+    accepted_data = []
+
+    for value in data:
+        samples += 1
+
+        # find the bucket this goes in
+        if value < min_v or value > max_v:
+            skipped += 1
+            continue
+        for bucket_postion, boundary in enumerate(boundaries):
+            if value <= boundary:
+                bucket_counts[bucket_postion] += 1
+                break
+
+    # auto-pick the hash scale
+    if max(bucket_counts) > 75:
+        bucket_scale = int(max(bucket_counts) / 75)
+
+    # print "# NumSamples = %d; Min = %0.2f; Max = %0.2f" % (samples, min_v, max_v)
+    # if skipped:
+    #    print "# %d value%s outside of min/max" % (skipped, skipped > 1 and 's' or '')
+
+    print(f"# each ∎ represents a count of {bucket_scale}")
+    bucket_min = min_v
+    bucket_max = min_v
+    for bucket in range(buckets):
+        bucket_min = bucket_max
+        bucket_max = boundaries[bucket]
+        bucket_count = bucket_counts[bucket]
+        star_count = 0
+        if bucket_count:
+            star_count = int(bucket_count / bucket_scale)
+        print(
+            "{:>8.1f} - {:>8.1f} {:8d}: {:s}".format(
+                bucket_min, bucket_max, bucket_count, "∎" * star_count
+            )
+        )
