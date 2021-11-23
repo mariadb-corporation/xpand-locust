@@ -131,6 +131,7 @@ def on_test_stop(environment, **kwargs):
 
 class CustomTasks(TaskSet):
     def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger(__name__)
         super(CustomTasks, self).__init__(*args, **kwargs)
 
     def on_start(self):  # For every new user
@@ -142,6 +143,7 @@ class CustomTasks(TaskSet):
             weight = custom_weights.get(
                 func.__name__, func.locust_task_weight
             )  # If no weight specified leave default
+            self.logger.debug(f"applying weight {weight} for function {func.__name__} ")
             for _ in range(weight):
                 new_tasks.append(func)
             else:
