@@ -98,6 +98,13 @@ class Swarm:
                 )
                 raise SwarmException()
 
+        except KeyboardInterrupt as e:
+            self.logger.error("Keyboard interrupt, exiting now.. ")
+            cmd = self.clean_workers_cmd()
+            self.logger.info(f"Cleaning the workers..")
+            _ = RunSubprocess(cmd=cmd).run_as_shell(wait=True)
+            self.logger.info("Done")
+            raise SwarmException()
         except CommandException as e:
             self.logger.error("Command failed with {e}")
             raise SwarmException()
@@ -182,6 +189,12 @@ class Swarm:
             self.run_workers_locally()
         else:
             self.run_workers_remotely(self.drivers_list.split(","))
+
+    def clean_workers_cmd(self):
+        """Return command to kill workers on the host"""
+        master_options = self.config.get("locust_master_options")
+        master_bind_port = master_options.get("master-bind-port")
+        return f"kill -9 $(pgrep -f '[w]orker --master-port {master_bind_port}')"
 
     def run_workers_remotely(self, drivers_list: str):
         """Run drivers remotely
