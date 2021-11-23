@@ -84,12 +84,9 @@ class RunSubprocess:
                 f"Command {cmd} timed out after {self.timeout} seconds"
             )
 
-        stdout_str = stdout.decode("utf-8")
-        stderr_str = stderr.decode("utf-8")
-
         if proc.returncode != 0:
             raise CommandException(
                 f"Command {cmd} failed with {stderr_str}, error code {proc.returncode}"
             )
 
-        return (stdout_str, stderr_str, proc.returncode)
+        return (stdout, stderr, proc.returncode)
