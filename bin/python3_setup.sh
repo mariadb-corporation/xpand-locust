@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup Pyhton 3 using pyenv
+# Setup Python 3 using pyenv
 sudo yum -y install gcc zlib-devel bzip2 bzip2-devel readline-devel sqlite \
     sqlite-devel openssl-devel xz xz-devel libffi-devel
 
