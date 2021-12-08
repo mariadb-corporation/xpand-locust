@@ -5,7 +5,7 @@ pssh_options: # https://github.com/ParallelSSH/parallel-ssh/blob/master/pssh/cli
   timeout: 15
   num_retries: 5
   retry_delay: 10
-master: localhost # Other than localhost hasn't been implemented yet
+master: 10.2.61.60 # This might be required for distributed load unless ssh_tunnel in use
 drivers:
   - yin01a
   - yin01b
@@ -16,7 +16,7 @@ configure:
   - $HOME/tools/xpand-locust/bin/pyenv_setup.sh
   - $HOME/tools/xpand-locust/bin/python3_setup.sh
   - pip install -r $HOME/tools/xpand-locust/requirements.txt
-  - echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc
+  - [[ ${XPAND_LOCUST_HOME} ]] || { echo 'export XPAND_LOCUST_HOME="$HOME/tools/xpand-locust"' >>~/.bashrc ; echo 'export PYTHONPATH="$XPAND_LOCUST_HOME"' >>~/.bashrc ; echo 'export PATH="$XPAND_LOCUST_HOME/bin:$PATH"' >>~/.bashrc ; }
 
 locust_master_options: # Check https://docs.locust.io/en/stable/configuration.html
   master-bind-host: "*"
@@ -28,4 +28,5 @@ locust_master_options: # Check https://docs.locust.io/en/stable/configuration.ht
   extra_options: --headless --csv-full-history --print-stats --reset-stats --histogram # do not use --loglevel
 locust_worker_options:
   extra_options: --logfile /tmp/worker.out # do not use --loglevel
-
+distribute_locustfile_directory: True # copy locustfile directory to all drivers
+use_ssh_tunnel: False # use ssh tunnel between master and workers
