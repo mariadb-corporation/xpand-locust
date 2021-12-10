@@ -1,0 +1,12 @@
+weights:
+  count_by_product: 1
+  insert_order: 10
+db_config:
+  host: efi-poc-e2-fe.mdb0001968.db1.skysql.net
+  port: 5001
+  user: tester1234
+  password: "1234"
+  database: "int_test"
+  autocommit: False
+  ssl:
+    ca: sky.pem 
