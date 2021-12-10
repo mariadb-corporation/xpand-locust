@@ -86,7 +86,7 @@ class RunSubprocess:
 
         if proc.returncode != 0:
             raise CommandException(
-                f"Command {cmd} failed with {stderr_str}, error code {proc.returncode}"
+                f"Command {cmd} failed with {stderr}, error code {proc.returncode}"
             )
 
         return (stdout, stderr, proc.returncode)
