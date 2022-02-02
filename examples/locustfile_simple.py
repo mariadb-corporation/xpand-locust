@@ -54,7 +54,7 @@ class MyUser(CustomLocust):
         pass
 
     def on_stop(self):
-        self.conn.close()
+        self.client.conn.close()
 
     def __init__(self, *args, **kwargs):
         super(MyUser, self).__init__(*args, **kwargs)
