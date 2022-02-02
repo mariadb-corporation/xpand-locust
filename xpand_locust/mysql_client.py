@@ -50,7 +50,7 @@ class MySqlClient:
 
     @custom_timer
     def executemany(self, query, params):
-        return self._executemany(self, query, params)
+        return self._executemany(query, params)
 
     @custom_timer
     def query_all(self, query, params=None):

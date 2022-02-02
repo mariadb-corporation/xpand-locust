@@ -33,6 +33,15 @@ class MyTasks(CustomTasks):
         )
 
     @task(1)
+    def execute_many(self):
+        many_orders = []
+        for i in range(10):
+            many_orders.append((next(self.products_iterator), i + 10))
+        self.client.executemany(
+            "insert into orders (product_name, amount) values (%s, %s)", many_orders
+        )
+
+    @task(1)
     def count_by_product(self):
         _ = self.client.query_all(
             "select count(*) from orders where product_name=%s",
@@ -43,6 +52,9 @@ class MyTasks(CustomTasks):
 class MyUser(CustomLocust):
     def on_start(self):
         pass
+
+    def on_stop(self):
+        self.conn.close()
 
     def __init__(self, *args, **kwargs):
         super(MyUser, self).__init__(*args, **kwargs)
