@@ -40,14 +40,18 @@ def is_master():
     return "--master" in sys.argv
 
 
-def histogram(data, buckets: int = 25):
+def histogram(data: list, buckets: int = 25, cut_pct: int = 5):
     """
     This code is from https://github.com/Kobold/text_histogram/blob/master/text_histogram.py
     """
+    x_pd = pd.Series(data)
+    x_data = x_pd.clip(
+        lower=x_pd.quantile(cut_pct / 100), upper=x_pd.quantile(1 - cut_pct / 100)
+    )
 
     bucket_scale = 1
-    min_v = min(data)
-    max_v = max(data)
+    min_v = min(x_data)
+    max_v = max(x_data)
     diff = max_v - min_v
 
     boundaries = []
@@ -64,7 +68,7 @@ def histogram(data, buckets: int = 25):
     samples = 0
     accepted_data = []
 
-    for value in data:
+    for value in x_data:
         samples += 1
 
         # find the bucket this goes in
