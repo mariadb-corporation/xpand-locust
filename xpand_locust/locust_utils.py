@@ -88,7 +88,7 @@ def histogram(data: list, buckets: int = 25, cut_pct: int = 5):
     # if skipped:
     #    print "# %d value%s outside of min/max" % (skipped, skipped > 1 and 's' or '')
 
-    print(f"# each ∎ represents a count of {bucket_scale}")
+    print(f"# each ∎ represents a count of {bucket_scale}. Cut pct is {cut_pct}%")
     bucket_min = min_v
     bucket_max = min_v
     for bucket in range(buckets):
@@ -103,3 +103,5 @@ def histogram(data: list, buckets: int = 25, cut_pct: int = 5):
                 bucket_min, bucket_max, bucket_count, "∎" * star_count
             )
         )
+    print("# Summary statistics:")
+    print(x_pd.describe(percentiles=[0.25, 0.5, 0.75, 0.9, 0.95, 0.99]))
