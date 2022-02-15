@@ -31,7 +31,7 @@ def custom_timer(func):
             result_len = result if isinstance(result, int) else len(result)
 
         except Exception as e:
-            total_time = int((time.time() - start_time) * 1000)
+            total_time = (time.time() - start_time) * 1000
             events.request_failure.fire(
                 request_type="CUSTOM",
                 name=function_name,
@@ -41,7 +41,7 @@ def custom_timer(func):
                 request_id="none",
             )  ##   clf.ps.request_id or "none")
         else:
-            total_time = int((time.time() - start_time) * 1000)
+            total_time = (time.time() - start_time) * 1000
             events.request_success.fire(
                 request_type="CUSTOM",
                 name=function_name,
