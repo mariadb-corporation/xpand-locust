@@ -26,7 +26,7 @@ locust_master_options: # Check https://docs.locust.io/en/stable/configuration.ht
   # https://github.com/locustio/locust/commit/3ab398e499749aedaf7506c8a2f11cc4cdcc19ec
   # ToDO: check for --expect-workers-max-wait 60
   # Todo --autostart --autoquit 10 causes  web_ui.stop() AttributeError: 'NoneType' object has no attribute 'stop'
-  extra_options: --headless --csv-full-history --print-stats --reset-stats --histogram # do not use --loglevel
+  extra_options: --headless --csv-full-history --print-stats --reset-stats --histogram  --stop-timeout 10 # do not use --loglevel
 locust_worker_options:
   extra_options: --logfile /tmp/worker.out # do not use --loglevel
 distribute_locustfile_directory: True # copy locustfile directory to all drivers
