@@ -372,7 +372,8 @@ class Swarm:
                 "--master-host",
                 master_host,
                 "--params",
-                f"./{os.path.basename(self.args.xpand_params)}",  # This assumes that xpand_params has been copied to the remote dir
+                self.args.xpand_params
+                #  f"./{os.path.basename(self.args.xpand_params)}",  # This assumes that xpand_params has been copied to the remote dir
             ]
         )
         cmd.append(worker_cmd)
