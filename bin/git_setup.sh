@@ -18,7 +18,7 @@ else
 fi
 
 package="git"
-${epel_manager}
+${epel}
 ${package_manager} ${package}
 
 echo "Done with git"
