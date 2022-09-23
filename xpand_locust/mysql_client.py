@@ -1,4 +1,5 @@
 import random
+from typing import Tuple
 
 import gevent.monkey  # https://github.com/PyMySQL/PyMySQL/issues/451
 import pymysql
@@ -17,18 +18,31 @@ class MySqlClient:
         self.connect_params["host"] = hosts[
             rnd
         ]  # ToDo: random.choice or https://pypi.org/project/roundrobin/
+        self.conn, self.cur = self.connect()
+
+    def connect(self)->Tuple:
         self.conn = pymysql.connect(**self.connect_params)
         self.cur = self.conn.cursor()
+        return (self.conn, self.cur)
 
     def _query(self, query, params=None):
-        self.cur.execute(query, params)
-        row = self.cur.fetchone()
-        return row
+        try:
+            self.cur.execute(query, params)
+            row = self.cur.fetchone()
+            return row
+        except pymysql.OperationalError as e: # TODO check 16388,1927,2013,2006
+            self.conn, self.cur = self.connect()
+            raise e
+
 
     def _query_all(self, query, params=None):
-        self.cur.execute(query, params)
-        rows = self.cur.fetchall()
-        return rows
+        try:
+            self.cur.execute(query, params)
+            rows = self.cur.fetchall()
+            return rows
+        except pymysql.OperationalError as e: # TODO check 16388,1927,2013,2006
+            self.conn, self.cur = self.connect()
+            raise e
 
     def trx_begin(self):
         self.conn.begin()
@@ -37,12 +51,20 @@ class MySqlClient:
         self.conn.commit()
 
     def _execute(self, query, params):
-        self.cur.execute(query, params)
-        return self.cur.rowcount  # Return how many values has been updated
+        try:
+            self.cur.execute(query, params)
+            return self.cur.rowcount  # Return how many values has been updated
+        except pymysql.OperationalError as e: # TODO check 16388,1927,2013,2006
+            self.conn, self.cur = self.connect()
+            raise e
 
     def _executemany(self, query, params):
-        self.cur.executemany(query, params)
-        return self.cur.rowcount  # Return how many values has been updated
+        try:
+            self.cur.executemany(query, params)
+            return self.cur.rowcount  # Return how many values has been updated
+        except pymysql.OperationalError as e: # TODO check 16388,1927,2013,2006
+            self.conn, self.cur = self.connect()
+            raise e
 
     @custom_timer
     def execute(self, query, params):
