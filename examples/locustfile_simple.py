@@ -21,8 +21,11 @@ class MyTasks(CustomTasks):
             "seed_values/products.csv", num_rows_required=NUM_RECORDS_REQUIRED
         )
 
-    # This is a default weight - see CustomTasks which applies custom weights
-    @task(10)
+    @task(100)
+    def reconnect(self):
+        self.client.connect()
+
+    @task(1000)
     def insert_order(self):
         _ = self.client.execute(
             "insert into orders (product_name, amount) values (%s, %s)",
@@ -32,7 +35,7 @@ class MyTasks(CustomTasks):
             ),
         )
 
-    @task(1)
+    @task(100)
     def execute_many(self):
         many_orders = []
         for i in range(10):
@@ -41,10 +44,10 @@ class MyTasks(CustomTasks):
             "insert into orders (product_name, amount) values (%s, %s)", many_orders
         )
 
-    @task(1)
+    @task(100)
     def count_by_product(self):
         _ = self.client.query_all(
-            "select count(*) from orders where product_name=%s",
+            "select count(*) from orders where DATE(order_date) = DATE(NOW()) and product_name=%s",
             (next(self.products_iterator),),
         )
 

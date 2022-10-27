@@ -9,6 +9,7 @@ db_config:
   password: "mariadb"
   database: "demo_sales"
   autocommit: True
-  connect_timeout: 3
-  read_timeout: 3
+  connect_timeout: 2
+  read_timeout: 1
+  write_timeout: 1
   ssl: 0
