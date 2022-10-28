@@ -1,0 +1,33 @@
+pssh_options: # https://github.com/ParallelSSH/parallel-ssh/blob/master/pssh/clients/ssh/parallel.py
+  user: root
+  password: ""
+  pkey:
+  timeout: 15
+  num_retries: 5
+  retry_delay: 10
+master: 10.2.61.60 # This might be required for distributed load unless ssh_tunnel in use
+drivers:
+  - yin01a
+  - yin01b
+configure:
+  - echo '* soft nofile 20000' | sudo tee -a /etc/security/limits.conf && echo '* hard nofile 20000' | sudo tee -a /etc/security/limits.conf
+  - curl -s https://raw.githubusercontent.com/mariadb-corporation/xpand-locust/main/bin/git_setup.sh | bash -s
+  - mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
+  - $HOME/tools/xpand-locust/bin/git_setup.sh
+  - $HOME/tools/xpand-locust/bin/pyenv_setup.sh
+  - $HOME/tools/xpand-locust/bin/python3_setup.sh
+  - $HOME/tools/xpand-locust/bin/setup_env.sh
+  - pip install -r $HOME/tools/xpand-locust/requirements.txt
+
+locust_master_options: # Check https://docs.locust.io/en/stable/configuration.html
+  master-bind-host: "*"
+  master-bind-port: 5557
+  # Waiting for workers to be ready works only with autostart (and webUI)
+  # https://github.com/locustio/locust/commit/3ab398e499749aedaf7506c8a2f11cc4cdcc19ec
+  # ToDO: check for --expect-workers-max-wait 60
+  # Todo --autostart --autoquit 10 causes  web_ui.stop() AttributeError: 'NoneType' object has no attribute 'stop'
+  extra_options: --headless --csv-full-history --print-stats --reset-stats --histogram  --stop-timeout 10 --logfile /tmp/master.out # do not use --loglevel
+locust_worker_options:
+  extra_options: --logfile /tmp/worker.out # do not use --loglevel
+distribute_locustfile_directory: True # copy locustfile directory to all drivers
+use_ssh_tunnel: True # use ssh tunnel between master and workers

@@ -1,0 +1,14 @@
+weights:
+  count_by_product: 1
+  insert_order: 10
+db_config:
+  host: 52.32.178.240
+  port: 3306
+  user: xbench
+  password: ""
+  database: "sysbench"
+  autocommit: True
+  connect_timeout: 2
+  read_timeout: 1
+  write_timeout: 1
+  ssl: 0
