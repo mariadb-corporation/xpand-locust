@@ -22,6 +22,7 @@ class MySqlClient:
         self.connect_params["host"] = hosts[
             rnd
         ]  # ToDo: random.choice or https://pypi.org/project/roundrobin/
+        self.connect_params["cursorclass"] = pymysql.cursors.DictCursor
         self.conn, self.cur = self.connect()
 
     @retry((pymysql.OperationalError, pymysql.InternalError), tries=30, delay=1)
