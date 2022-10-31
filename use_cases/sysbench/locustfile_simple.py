@@ -7,11 +7,11 @@
 
 
 import numpy
-from locust import between, task
+from locust import between, constant_throughput, task
 from xpand_locust import CustomLocust, CustomTasks
 
 TOTAL_ROWS = 1000000  # Number of rows per table
-BULK_ROWS = 20  # how many rows to use for range scan
+BULK_ROWS = 100  # how many rows to use for range scan
 TABLES = 2
 
 
@@ -25,15 +25,22 @@ def get_table_num():
     return numpy.random.randint(1, TABLES + 1)
 
 
+def c_value():
+    s = str(numpy.random.randint(1, 10))
+    one_group = s * 11
+    all_groups = [one_group] * 10
+    return "-".join(all_groups)
+
+
 class MyTasks(CustomTasks):
     def on_start(self):  # For every new user
         super(MyTasks, self).on_start()
 
-    @task(100)
-    def reconnect(self):
-        self.client.connect()
+    # @task(100)
+    # def reconnect(self):
+    #    self.client.connect()
 
-    @task(10)
+    @task(1)
     def point_selects(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id=%s"
@@ -42,7 +49,7 @@ class MyTasks(CustomTasks):
             (random_id,),
         )
 
-    @task(1)
+    @task(9)
     def simple_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s"
@@ -50,6 +57,15 @@ class MyTasks(CustomTasks):
             q,
             (random_id, random_id + BULK_ROWS),
         )
+
+    @task(3)
+    def non_index_updates(self):
+        random_id = get_random_id()
+        random_str = c_value()
+        q = f"UPDATE sbtest{get_table_num()} SET c=%s WHERE id=%s"
+        self.client.trx_begin()
+        self.client.execute(q, (random_str, random_id))
+        self.client.trx_commit()
 
 
 class MyUser(CustomLocust):
@@ -63,4 +79,4 @@ class MyUser(CustomLocust):
         super(MyUser, self).__init__(*args, **kwargs)
 
     tasks = [MyTasks]
-    wait_time = between(0.1, 0.5)
+    wait_time = constant_throughput(50)  # between(0.01, 0.05)
