@@ -7,8 +7,8 @@ db_config:
   user: xbench
   password: ""
   database: "sysbench"
-  autocommit: True
-  connect_timeout: 2
-  read_timeout: 1
-  write_timeout: 1
+  autocommit: False
+  connect_timeout: 5
+  read_timeout: 10
+  write_timeout: 10
   ssl: 0
