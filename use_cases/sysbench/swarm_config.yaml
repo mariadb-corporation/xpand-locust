@@ -20,7 +20,7 @@ configure:
   #- $HOME/tools/xpand-locust/bin/pyenv_setup.sh
   #- $HOME/tools/xpand-locust/bin/python3_setup.sh
   - $HOME/tools/xpand-locust/bin/setup_env.sh
-  - pip install -r $HOME/tools/xpand-locust/requirements.txt
+  - pip3.9 install -r $HOME/tools/xpand-locust/requirements.txt
 
 locust_master_options: # Check https://docs.locust.io/en/stable/configuration.html
   master-bind-host: "*"
