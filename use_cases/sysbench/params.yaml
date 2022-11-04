@@ -1,5 +1,5 @@
 weights:
-  point_selects: 9
+  point_selects: 19
   non_index_updates: 1
 db_config:
   host: 52.32.178.240
