@@ -301,7 +301,6 @@ class Swarm:
             self.run_workers_locally()
         else:
             self.run_workers_remotely(self.drivers_list)
-        self.run_workers_locally()
 
     def kill_workers_cmd(self):
         """Return command to kill workers on the host"""
