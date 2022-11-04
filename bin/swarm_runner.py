@@ -115,6 +115,14 @@ class Main(Swarm):
             required=True,
         )
 
+        run_workers_subparser.add_argument(
+            "--drivers",
+            action="store",
+            dest="drivers_list",
+            default="127.0.0.1",
+            help="driver list. Be default will use local machine as driver",
+        )
+
         run_workers_subparser.set_defaults(func="main_workers")
 
         # Master

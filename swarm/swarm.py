@@ -294,23 +294,14 @@ class Swarm:
         self.run_master_command(master_cmd)
 
     def main_workers(self):
-        """Run workers locally (on the current host)
+        """Run workers locally (on the current host) or remotely
         https://docs.locust.io/en/stable/running-locust-distributed.html#running-locust-distributed
         """
-        self.run_workers_locally()
-
-    """
-    def run_workers(self, drivers_list: str):
-        
-        Main run worker. Depend on drivers_list it will decide how to run workers
-        
-        if drivers_list is None:
-            self.run_workers_remotely(self.config.get("drivers"))
-        elif drivers_list == LOCALHOST:
+        if self.drivers_list == [LOCALHOST]:
             self.run_workers_locally()
         else:
-            self.run_workers_remotely(drivers_list.split(","))
-    """
+            self.run_workers_remotely(self.drivers_list)
+        self.run_workers_locally()
 
     def kill_workers_cmd(self):
         """Return command to kill workers on the host"""
