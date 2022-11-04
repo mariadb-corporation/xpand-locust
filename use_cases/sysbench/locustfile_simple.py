@@ -7,12 +7,12 @@
 
 
 import numpy
-from locust import between, constant_throughput, task
+from locust import between, constant, constant_throughput, task
 from xpand_locust import CustomLocust, CustomTasks
 
 TOTAL_ROWS = 1000000  # Number of rows per table
-BULK_ROWS = 500  # how many rows to use for range scan
-TABLES = 2
+BULK_ROWS = 100  # how many rows to use for range scan
+TABLES = 10
 
 
 def get_random_id():
@@ -43,11 +43,11 @@ class MyTasks(CustomTasks):
     def on_start(self):  # For every new user
         super(MyTasks, self).on_start()
 
-    @task(1)
+    @task(0)
     def reconnect(self):
         self.client.connect()
 
-    @task(10000)
+    @task(9)
     def point_selects(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id=%s"
@@ -56,7 +56,7 @@ class MyTasks(CustomTasks):
             (random_id,),
         )
 
-    @task(3000)
+    @task(0)
     def simple_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s"
@@ -65,7 +65,7 @@ class MyTasks(CustomTasks):
             (random_id, random_id + BULK_ROWS),
         )
 
-    @task(3000)
+    @task(0)
     def ordered_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s ORDER BY c"
@@ -74,7 +74,7 @@ class MyTasks(CustomTasks):
             (random_id, random_id + BULK_ROWS),
         )
 
-    @task(2000)
+    @task(1)
     def non_index_updates(self):
         random_id = get_random_id()
         random_str = c_value()
@@ -83,7 +83,7 @@ class MyTasks(CustomTasks):
         self.client.execute(q, (random_str, random_id))
         self.client.trx_commit()
 
-    @task(2000)
+    @task(0)
     def index_updates(self):
         random_id = get_random_id()
         random_str = c_value()
@@ -117,4 +117,4 @@ class MyUser(CustomLocust):
         super(MyUser, self).__init__(*args, **kwargs)
 
     tasks = [MyTasks]
-    wait_time = constant_throughput(50)  # between(0.01, 0.05)
+    wait_time = constant(0)  # constant_throughput(50)  # between(0.01, 0.05)

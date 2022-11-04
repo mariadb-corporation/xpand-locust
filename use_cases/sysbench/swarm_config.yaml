@@ -1,21 +1,24 @@
 pssh_options: # https://github.com/ParallelSSH/parallel-ssh/blob/master/pssh/clients/ssh/parallel.py
-  user: root
+  user: rocky
   password: ""
-  pkey:
+  pkey: "/home/rocky/.ssh/xbench.pem"
   timeout: 15
   num_retries: 5
   retry_delay: 10
-master: 10.2.61.60 # This might be required for distributed load unless ssh_tunnel in use
+master: 172.31.26.45 # This might be required for distributed load unless ssh_tunnel in use
 drivers:
-  - yin01a
-  - yin01b
+  - 172.31.22.73
+  - 172.31.29.114
+  - 172.31.24.106
+  - 172.31.16.125
 configure:
-  - echo '* soft nofile 20000' | sudo tee -a /etc/security/limits.conf && echo '* hard nofile 20000' | sudo tee -a /etc/security/limits.conf
-  - curl -s https://raw.githubusercontent.com/mariadb-corporation/xpand-locust/main/bin/git_setup.sh | bash -s
+  #- echo '* soft nofile 20000' | sudo tee -a /etc/security/limits.conf && echo '* hard nofile 20000' | sudo tee -a /etc/security/limits.conf
+  #- curl -s https://raw.githubusercontent.com/mariadb-corporation/xpand-locust/main/bin/git_setup.sh | bash -s
+  - sudo dnf install -y python39
   - mkdir -p $HOME/tools && cd $HOME/tools && rm -rf xpand-locust && git clone https://github.com/mariadb-corporation/xpand-locust.git
-  - $HOME/tools/xpand-locust/bin/git_setup.sh
-  - $HOME/tools/xpand-locust/bin/pyenv_setup.sh
-  - $HOME/tools/xpand-locust/bin/python3_setup.sh
+  #- $HOME/tools/xpand-locust/bin/git_setup.sh
+  #- $HOME/tools/xpand-locust/bin/pyenv_setup.sh
+  #- $HOME/tools/xpand-locust/bin/python3_setup.sh
   - $HOME/tools/xpand-locust/bin/setup_env.sh
   - pip install -r $HOME/tools/xpand-locust/requirements.txt
 

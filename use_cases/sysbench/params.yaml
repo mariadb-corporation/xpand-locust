@@ -1,6 +1,6 @@
 weights:
-  count_by_product: 1
-  insert_order: 10
+  point_selects: 9
+  non_index_updates: 1
 db_config:
   host: 52.32.178.240
   port: 3306
