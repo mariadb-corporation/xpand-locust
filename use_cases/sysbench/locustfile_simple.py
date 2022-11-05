@@ -6,11 +6,11 @@
 # locust  --locustfile examples/locustfile_simple  --headless -u 10 --run-time 1m --spawn-rate 10 --csv-full-history --csv mysql --reset-stats --params params.yaml
 
 
-import numpy
-from locust import between, constant, constant_throughput, task
-from xpand_locust import CustomLocust, CustomTasks
-from locust import LoadTestShape
+import math
 
+import numpy
+from locust import LoadTestShape, between, constant, constant_throughput, task
+from xpand_locust import CustomLocust, CustomTasks
 
 TOTAL_ROWS = 1000000  # Number of rows per table
 BULK_ROWS = 100  # how many rows to use for range scan
@@ -122,33 +122,26 @@ class MyUser(CustomLocust):
     wait_time = constant(0)  # constant_throughput(50)  # between(0.01, 0.05)
 
 
-class StagesShape(LoadTestShape):
+class StepLoadShape(LoadTestShape):
     """
-    A simply load test shape class that has different user and spawn_rate at
-    different stages.
+    A step load shape
     Keyword arguments:
-        stages -- A list of dicts, each representing a stage with the following keys:
-            duration -- When this many seconds pass the test is advanced to the next stage
-            users -- Total user count
-            spawn_rate -- Number of users to start/stop per second
-            stop -- A boolean that can stop that test at a specific stage
-        stop_at_end -- Can be set to stop once all stages have run.
+        step_time -- Time between steps
+        step_load -- User increase amount at each step
+        spawn_rate -- Users to stop/start per second at every step
+        time_limit -- Time limit in seconds
     """
 
-    stages = [
-        {"duration": 120, "users": 256, "spawn_rate": 64},
-        {"duration": 120, "users": 384, "spawn_rate": 64},
-        {"duration": 120, "users": 512, "spawn_rate": 10},
-        {"duration": 120, "users": 640, "spawn_rate": 10},
-        {"duration": 120, "users": 1024, "spawn_rate": 10},
-    ]
+    step_time = 120
+    step_load = 64
+    spawn_rate = 64
+    time_limit = 480
 
     def tick(self):
         run_time = self.get_run_time()
 
-        for stage in self.stages:
-            if run_time < stage["duration"]:
-                tick_data = (stage["users"], stage["spawn_rate"])
-                return tick_data
+        if run_time > self.time_limit:
+            return None
 
-        return None
+        current_step = math.floor(run_time / self.step_time) + 1
+        return (current_step * self.step_load, self.spawn_rate)
