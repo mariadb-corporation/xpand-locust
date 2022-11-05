@@ -1,6 +1,7 @@
 weights:
   point_selects: 19
   non_index_updates: 1
+  reconnect: 10
 db_config:
   host: 52.32.178.240
   port: 3306

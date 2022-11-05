@@ -15,6 +15,7 @@ from xpand_locust import CustomLocust, CustomTasks
 TOTAL_ROWS = 1000000  # Number of rows per table
 BULK_ROWS = 100  # how many rows to use for range scan
 TABLES = 10
+RECONNECT_RATE = 10000
 
 
 def get_random_id():
@@ -42,12 +43,17 @@ def pad_value():
 
 
 class MyTasks(CustomTasks):
+    def __init__(self):
+        self.request_count = 0
+
     def on_start(self):  # For every new user
         super(MyTasks, self).on_start()
 
-    @task(0)
+    @task(1)
     def reconnect(self):
-        self.client.connect()
+        self.request_count += 1
+        if self.request_count % RECONNECT_RATE == 0:
+            self.client.connect()
 
     @task(9)
     def point_selects(self):
