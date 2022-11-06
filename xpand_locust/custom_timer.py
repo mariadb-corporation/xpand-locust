@@ -28,7 +28,10 @@ def custom_timer(func):
         clf = args[0]  # Class instance og the calling function.
         try:
             result = func(*args, **kwargs)
-            result_len = result if isinstance(result, int) else len(result)
+            if result is not None:
+                result_len = result if isinstance(result, int) else len(result)
+            else:
+                result_len = 0
 
         except Exception as e:
             total_time = (time.time() - start_time) * 1000
