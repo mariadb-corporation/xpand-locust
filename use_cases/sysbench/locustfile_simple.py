@@ -49,13 +49,11 @@ class MyTasks(CustomTasks):
     def on_start(self):  # For every new user
         super(MyTasks, self).on_start()
 
-    @task(1)
     def reconnect(self):
         self.request_count += 1
         if self.request_count % RECONNECT_RATE == 0:
             self.client.connect()
 
-    @task(9)
     def point_selects(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id=%s"
@@ -64,7 +62,6 @@ class MyTasks(CustomTasks):
             (random_id,),
         )
 
-    @task(0)
     def simple_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s"
@@ -73,7 +70,6 @@ class MyTasks(CustomTasks):
             (random_id, random_id + BULK_ROWS),
         )
 
-    @task(0)
     def ordered_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s ORDER BY c"
@@ -82,7 +78,6 @@ class MyTasks(CustomTasks):
             (random_id, random_id + BULK_ROWS),
         )
 
-    @task(1)
     def non_index_updates(self):
         random_id = get_random_id()
         random_str = c_value()
@@ -91,7 +86,6 @@ class MyTasks(CustomTasks):
         self.client.execute(q, (random_str, random_id))
         self.client.trx_commit()
 
-    @task(0)
     def index_updates(self):
         random_id = get_random_id()
         random_str = c_value()
@@ -100,7 +94,6 @@ class MyTasks(CustomTasks):
         self.client.execute(q, (random_id,))
         self.client.trx_commit()
 
-    @task(0)
     def delete_inserts(self):
         random_id = get_random_id()
         random_str = c_value()
@@ -112,6 +105,23 @@ class MyTasks(CustomTasks):
         q = f"INSERT INTO sbtest{tab_num} (id, k, c, pad) VALUES (%s, %s, %s, %s)"
         self.client.execute(q, (random_id, get_random_id(), c_value(), pad_value()))
         self.client.trx_commit()
+
+    @task(1)
+    def new_order(self):
+        for _ in range(9):
+            self.point_selects()
+
+        self.non_index_updates()
+        self.index_updates()
+        self.reconnect()
+
+    @task(1)
+    def credit_check(self):
+        for _ in range(9):
+            self.simple_ranges()
+
+        self.delete_inserts()
+        self.reconnect()
 
 
 class MyUser(CustomLocust):
