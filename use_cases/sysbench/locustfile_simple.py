@@ -8,9 +8,14 @@
 
 import math
 
+import locust.runners
+import locust.stats
 import numpy
 from locust import LoadTestShape, between, constant, constant_throughput, task
-from xpand_locust import CustomLocust, CustomTasks
+from xpand_locust import CustomLocust, CustomTasks, custom_timer
+
+locust.runners.WORKER_REPORT_INTERVAL = 1.0
+locust.stats.CONSOLE_STATS_INTERVAL_SEC = 1
 
 TOTAL_ROWS = 1000000  # Number of rows per table
 BULK_ROWS = 100  # how many rows to use for range scan
@@ -43,11 +48,12 @@ def pad_value():
 
 
 class MyTasks(CustomTasks):
-    def __init__(self):
-        self.request_count = 0
+    # def __init__(self):
+    #    self.request_count = 0
 
     def on_start(self):  # For every new user
-        super(MyTasks, self).on_start()
+        self.request_count = 0
+        # super(MyTasks, self).on_start()
 
     def reconnect(self):
         self.request_count += 1
@@ -57,7 +63,7 @@ class MyTasks(CustomTasks):
     def point_selects(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id=%s"
-        r = self.client.query(
+        r = self.client._query(
             q,
             (random_id,),
         )
@@ -65,7 +71,7 @@ class MyTasks(CustomTasks):
     def simple_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s"
-        _ = self.client.query_all(
+        _ = self.client._query_all(
             q,
             (random_id, random_id + BULK_ROWS),
         )
@@ -73,7 +79,7 @@ class MyTasks(CustomTasks):
     def ordered_ranges(self):
         random_id = get_random_id()
         q = f"SELECT c FROM sbtest{get_table_num()} WHERE id BETWEEN %s AND %s ORDER BY c"
-        _ = self.client.query_all(
+        _ = self.client._query_all(
             q,
             (random_id, random_id + BULK_ROWS),
         )
@@ -83,7 +89,7 @@ class MyTasks(CustomTasks):
         random_str = c_value()
         q = f"UPDATE sbtest{get_table_num()} SET c=%s WHERE id=%s"
         self.client.trx_begin()
-        self.client.execute(q, (random_str, random_id))
+        self.client._execute(q, (random_str, random_id))
         self.client.trx_commit()
 
     def index_updates(self):
@@ -91,7 +97,7 @@ class MyTasks(CustomTasks):
         random_str = c_value()
         q = f"UPDATE sbtest{get_table_num()} SET k=k+1 WHERE id=%s"
         self.client.trx_begin()
-        self.client.execute(q, (random_id,))
+        self.client._execute(q, (random_id,))
         self.client.trx_commit()
 
     def delete_inserts(self):
@@ -101,13 +107,17 @@ class MyTasks(CustomTasks):
         q = f"DELETE from  sbtest{tab_num} WHERE id=%s"
         self.client.trx_begin()
 
-        self.client.execute(q, (random_id,))
+        self.client._execute(q, (random_id,))
         q = f"INSERT INTO sbtest{tab_num} (id, k, c, pad) VALUES (%s, %s, %s, %s)"
-        self.client.execute(q, (random_id, get_random_id(), c_value(), pad_value()))
+        self.client._execute(q, (random_id, get_random_id(), c_value(), pad_value()))
         self.client.trx_commit()
 
     @task(1)
     def new_order(self):
+        self._new_order()
+
+    @custom_timer
+    def _new_order(self):
         for _ in range(9):
             self.point_selects()
 
@@ -117,6 +127,10 @@ class MyTasks(CustomTasks):
 
     @task(1)
     def credit_check(self):
+        self._credit_check()
+
+    @custom_timer
+    def _credit_check(self):
         for _ in range(9):
             self.simple_ranges()
 
@@ -135,29 +149,29 @@ class MyUser(CustomLocust):
         super(MyUser, self).__init__(*args, **kwargs)
 
     tasks = [MyTasks]
-    wait_time = constant(0)  # constant_throughput(50)  # between(0.01, 0.05)
+    wait_time = constant(0)  # between(1,2)
 
 
-class StepLoadShape(LoadTestShape):
-    """
-    A step load shape
-    Keyword arguments:
-        step_time -- Time between steps
-        step_load -- User increase amount at each step
-        spawn_rate -- Users to stop/start per second at every step
-        time_limit -- Time limit in seconds
-    """
+# class StepLoadShape(LoadTestShape):
+#     """
+#     A step load shape
+#     Keyword arguments:
+#         step_time -- Time between steps
+#         step_load -- User increase amount at each step
+#         spawn_rate -- Users to stop/start per second at every step
+#         time_limit -- Time limit in seconds
+#     """
 
-    step_time = 120
-    step_load = 64
-    spawn_rate = 64
-    time_limit = 480
+#     step_time = 120
+#     step_load = 64
+#     spawn_rate = 8
+#     time_limit = 480
 
-    def tick(self):
-        run_time = self.get_run_time()
+#     def tick(self):
+#         run_time = self.get_run_time()
 
-        if run_time > self.time_limit:
-            return None
+#         if run_time > self.time_limit:
+#             return None
 
-        current_step = math.floor(run_time / self.step_time) + 1
-        return (current_step * self.step_load, self.spawn_rate)
+#         current_step = math.floor(run_time / self.step_time) + 1
+#         return (current_step * self.step_load, self.spawn_rate)
