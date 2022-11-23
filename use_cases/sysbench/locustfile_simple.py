@@ -12,10 +12,12 @@ import locust.runners
 import locust.stats
 import numpy
 from locust import LoadTestShape, between, constant, constant_throughput, task
+
 from xpand_locust import CustomLocust, CustomTasks, custom_timer
 
 locust.runners.WORKER_REPORT_INTERVAL = 1.0
 locust.stats.CONSOLE_STATS_INTERVAL_SEC = 1
+locust.stats.STATS_AUTORESIZE = False
 
 TOTAL_ROWS = 1000000  # Number of rows per table
 BULK_ROWS = 100  # how many rows to use for range scan
