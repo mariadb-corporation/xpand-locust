@@ -25,27 +25,40 @@ class MySqlClient:
         self.connect_params["cursorclass"] = pymysql.cursors.DictCursor
         self.conn, self.cur = self.connect()
 
-    @retry((pymysql.OperationalError, pymysql.InternalError), tries=30, delay=1)
+    @retry((pymysql.Error), tries=30, delay=1)
     def connect(self) -> Tuple:
 
         self.conn = pymysql.connect(**self.connect_params)
         self.cur = self.conn.cursor()
         return (self.conn, self.cur)
 
-    @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
+    def handle_exception(self, e):
+        do_reconnect = False
+
+        if e is pymysql.InterfaceError:  # connection closed from driver side
+            do_reconnect = True
+
+        for (
+            code
+        ) in (
+            lost_connection_codes
+        ):  # This is a database problem and I've lost connection
+            if code in str(e):
+                do_reconnect = True
+
+        if do_reconnect:
+            self.conn, self.cur = self.connect()
+
+        raise e  # Now I am ready to repeat the transaction again
+
+    @retry((pymysql.Error), tries=10, delay=1)
     def _query(self, query, params=None):
         try:
             self.cur.execute(query, params)
             row = self.cur.fetchone()
             return row
-        except (
-            pymysql.OperationalError,
-            pymysql.InternalError,
-        ) as e:  # TODO check 16388,1927,2013,2006
-            for code in lost_connection_codes:
-                if code in str(e):
-                    self.conn, self.cur = self.connect()
-            raise e
+        except (pymysql.Error) as e:
+            self.handle_exception(e)
 
     @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
     def _query_all(self, query, params=None):
@@ -53,14 +66,8 @@ class MySqlClient:
             self.cur.execute(query, params)
             rows = self.cur.fetchall()
             return rows
-        except (
-            pymysql.OperationalError,
-            pymysql.InternalError,
-        ) as e:  # TODO check 16388,1927,2013,2006
-            for code in lost_connection_codes:
-                if code in str(e):
-                    self.conn, self.cur = self.connect()
-            raise e
+        except (pymysql.Error) as e:
+            self.handle_exception(e)
 
     def trx_begin(self):
         self.conn.begin()
@@ -73,28 +80,16 @@ class MySqlClient:
         try:
             self.cur.execute(query, params)
             return self.cur.rowcount  # Return how many values has been updated
-        except (
-            pymysql.OperationalError,
-            pymysql.InternalError,
-        ) as e:  # TODO check 16388,1927,2013,2006
-            for code in lost_connection_codes:
-                if code in str(e):
-                    self.conn, self.cur = self.connect()
-            raise e
+        except (pymysql.Error) as e:
+            self.handle_exception(e)
 
     @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
     def _executemany(self, query, params):
         try:
             self.cur.executemany(query, params)
             return self.cur.rowcount  # Return how many values has been updated
-        except (
-            pymysql.OperationalError,
-            pymysql.InternalError,
-        ) as e:  # TODO check 16388,1927,2013,2006
-            for code in lost_connection_codes:
-                if code in str(e):
-                    self.conn, self.cur = self.connect()
-            raise e
+        except (pymysql.Error) as e:
+            self.handle_exception(e)
 
     @custom_timer
     def execute(self, query, params):
