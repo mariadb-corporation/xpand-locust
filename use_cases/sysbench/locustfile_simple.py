@@ -17,6 +17,7 @@ from xpand_locust import CustomLocust, CustomTasks, custom_timer
 
 locust.runners.WORKER_REPORT_INTERVAL = 1.0
 locust.stats.CONSOLE_STATS_INTERVAL_SEC = 1
+locust.stats.CURRENT_RESPONSE_TIME_PERCENTILE_WINDOW = 1
 locust.stats.STATS_AUTORESIZE = False
 
 TOTAL_ROWS = 1000000  # Number of rows per table
