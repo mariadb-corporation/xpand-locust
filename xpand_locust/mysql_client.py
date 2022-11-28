@@ -13,6 +13,8 @@ gevent.monkey.patch_all()
 lost_connection_codes = ["1927", "2006", "2013", "1927"]
 retry_transaction_codes = ["16388"]
 
+class MySqlClientRetryException(Exception):
+    """Group Change exception"""
 
 class MySqlClient:
     def __init__(self, **kwargs):
@@ -35,14 +37,24 @@ class MySqlClient:
     def handle_exception(self, e):
         do_reconnect = False
 
-        if e is pymysql.InterfaceError:  # connection closed from driver side
+        for (
+            code
+        ) in (
+            retry_transaction_codes
+        ):
+            if code in str(e):
+                raise MySqlClientRetryException
+
+
+        if isinstance(e, pymysql.InterfaceError):  # connection closed from driver side
             do_reconnect = True
 
+        # This is a database problem and I've lost connection
         for (
             code
         ) in (
             lost_connection_codes
-        ):  # This is a database problem and I've lost connection
+        ):
             if code in str(e):
                 do_reconnect = True
 
@@ -51,7 +63,7 @@ class MySqlClient:
 
         raise e  # Now I am ready to repeat the transaction again
 
-    @retry((pymysql.Error), tries=10, delay=1)
+    @retry(MySqlClientRetryException, tries=10, delay=1)
     def _query(self, query, params=None):
         try:
             self.cur.execute(query, params)
@@ -60,7 +72,7 @@ class MySqlClient:
         except (pymysql.Error) as e:
             self.handle_exception(e)
 
-    @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
+    @retry(MySqlClientRetryException, tries=10, delay=1)
     def _query_all(self, query, params=None):
         try:
             self.cur.execute(query, params)
@@ -75,7 +87,7 @@ class MySqlClient:
     def trx_commit(self):
         self.conn.commit()
 
-    @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
+    @retry(MySqlClientRetryException, tries=10, delay=1)
     def _execute(self, query, params):
         try:
             self.cur.execute(query, params)
@@ -83,7 +95,7 @@ class MySqlClient:
         except (pymysql.Error) as e:
             self.handle_exception(e)
 
-    @retry((pymysql.OperationalError, pymysql.InternalError), tries=10, delay=1)
+    @retry(MySqlClientRetryException, tries=10, delay=1)
     def _executemany(self, query, params):
         try:
             self.cur.executemany(query, params)
