@@ -19,11 +19,13 @@ locust.runners.WORKER_REPORT_INTERVAL = 1.0
 locust.stats.CONSOLE_STATS_INTERVAL_SEC = 1
 locust.stats.STATS_AUTORESIZE = False
 locust.stats.CURRENT_RESPONSE_TIME_PERCENTILE_WINDOW = 1
+locust.stats.CACHE_SIZE_WINDOW = 5
+locust.stats.HISTORY_STATS_INTERVAL_SEC = 1
 
 TOTAL_ROWS = 1000000  # Number of rows per table
 BULK_ROWS = 100  # how many rows to use for range scan
 TABLES = 10
-RECONNECT_RATE = 10000
+RECONNECT_RATE = 1000
 
 
 def get_random_id():
